@@ -1,0 +1,280 @@
+# ?? KAKO TESTIRATI - Vizuelno Uputstvo
+
+## ?? Šta Bi Trebalo Da Vidiš
+
+### Konzola (Terminal)
+```
+???????????????????????????????????????????????????????????????
+? [INFO] Initializing Application...                         ?
+? [INFO] Creating fullscreen window...                       ?
+? [INFO] Window created successfully: 1920x1080              ?
+? [INFO] OpenGL Version: 4.6.0 NVIDIA ...                    ?
+? Vertex shader compiled successfully                         ?
+? Fragment shader compiled successfully                       ?
+? Shader program linked successfully                          ?
+? [INFO] Basic shader created with ID: 3                     ?
+? [INFO] OpenGL Vendor: NVIDIA Corporation                   ?
+? [INFO] OpenGL Renderer: NVIDIA GeForce RTX ...            ?
+? [INFO] Application initialized successfully                ?
+? [INFO] Starting main loop...                               ?
+? [INFO] Frame 0 | Camera pos: (0.0, 1.7, 8.0) | DT: 0.00   ?
+???????????????????????????????????????????????????????????????
+```
+
+? **DOBRO:** Vidiš sve ove poruke bez ERROR
+? **LOŠE:** Vidiš "ERROR: Failed to open shader file"
+
+---
+
+### Ekran (3D Prikaz)
+
+```
+     TAVAN (ceiling)
+    ???????????????????????????????????????????
+    ?                                         ?
+    ?   ?? (Žuta Kocka)     ?? (Ljubi?asta)  ? ? Zadnji zid
+    ?        Zadnji Levi     Zadnji Desni    ?   (sa vratima)
+    ?                                         ?
+    ?                                         ?
+    ?            ?? CRVENA KOCKA              ? ? Centar sale
+    ?            (na centru)                  ?   (0, 1, 0)
+    ?                                         ?
+    ?         ????????????????????           ? ? Sivi pod
+    ?                                         ?   (velika ravna površina)
+    ?                                         ?
+    ?   ?? (Zelena)         ?? (Plava)       ? ? Prednji zid
+    ?      Prednji Levi       Prednji Desni  ?   (ekran ?e biti ovde kasnije)
+    ?                                         ?
+    ???????????????????????????????????????????
+          POD (floor)
+
+    KAMERA SPAWN: (0, 1.7, 8) - gleda ka -Z (ka prednji zidu)
+```
+
+? **DOBRO:** Vidiš sve objekte u 3D
+? **LOŠE:** Crni ekran ili 2D prikaz
+
+---
+
+## ?? Kontrole
+
+### Mouse Look (Rotacija Kamere)
+```
+        ? (Miš gore)
+        ?
+        ?  Pitch: Nagibi kameru gore/dole
+        ?
+?????????????????  Yaw: Rotira kameru levo/desno
+        ?
+        ?
+        ? (Miš dole)
+```
+
+**Test:**
+1. Pomeri miš LEVO ? Prikaz se rotira ulevo
+2. Pomeri miš DESNO ? Prikaz se rotira udesno
+3. Pomeri miš GORE ? Prikaz se nagibi gore (vidiš plafon)
+4. Pomeri miš DOLE ? Prikaz se nagibi dole (vidiš pod)
+
+? **DOBRO:** Smooth rotacija, pitch clampovan na ±89°
+? **LOŠE:** Nema rotacije ili skokovita rotacija
+
+---
+
+### Movement (Kretanje)
+```
+           W / ?
+           ?
+           ?  FORWARD (napred u pravcu gledanja)
+           ?
+A / ?  ?????????  ?  D / ?
+  STRAFE    ?       STRAFE
+   LEFT     ?        RIGHT
+           ?
+           ?
+         S / ?
+        BACKWARD (nazad)
+```
+
+**Test:**
+1. Gledaj ka crveno kocki (spawn position)
+2. Pritisni **W** ? Kre?i se ka kocki
+3. Rotiraj kameru 90° desno (sa mišem)
+4. Pritisni **W** opet ? Kre?i se u NOVOM pravcu (ne ka kocki)
+
+? **DOBRO:** Kretanje prati pravac gledanja
+? **LOŠE:** Kretanje u fiksnim pravcima bez obzira na kameru
+
+---
+
+## ?? Test Scenariji
+
+### Scenario 1: Verifikacija Rendering-a (30 sec)
+```
+1. Pokreni aplikaciju
+2. Proveri konzolu ? "Shader compiled successfully"
+3. Proveri ekran ? Vidiš crvenu kocku?
+4. Proveri pod ? Vidiš sivi pod?
+5. Proveri uglove ? Vidiš 4 obojene kocke?
+```
+
+**Rezultat:**
+- ? SVE VIDIM ? Rendering radi!
+- ? CRNI EKRAN ? Problem sa shaderima
+- ? 2D PRIKAZ ? Problem sa depth testingom
+
+---
+
+### Scenario 2: Mouse Look Test (1 min)
+```
+1. Gledaj ka crveno kocki
+2. Pomeri miš levo polako
+3. Crvena kocka ? pomera se desno u prikazu
+4. Pomeri miš gore polako  
+5. Vidiš plafon
+6. Pomeri miš dole polako
+7. Vidiš pod
+
+Pokušaj da "okreneš kameru naopako" (360° vertikalno)
+? Trebalo bi da se zaustavi na ~89° gore i ~-89° dole
+```
+
+**Rezultat:**
+- ? Smooth rotation ? Mouse look radi!
+- ? Bez rotacije ? Input ne radi
+- ? Može flip 360° ? Pitch clamping ne radi
+
+---
+
+### Scenario 3: Movement Test (2 min)
+```
+1. Spawn pozicija (0, 1.7, 8)
+2. Gledaš ka crveno kocki (ona je ispred)
+3. Pritisni W ? Kre?eš se ka kocki
+4. Kocka postaje ve?a (bližeš joj se) ?
+5. Zaustavi se blizu kocke
+6. Rotiraj kameru 90° desno (miš)
+7. Sada gledaš plavu kocku (desni ugao)
+8. Pritisni W ? Kre?eš se ka plavoj kocki ?
+9. Pritisni A ? Kre?eš se levo (perpendikularno na pogled) ?
+```
+
+**Rezultat:**
+- ? Kretanje prati kameru ? View-direction movement radi!
+- ? Uvek ideš ka istom pravcu ? Fixed-axis movement (loše)
+
+---
+
+### Scenario 4: Collision Test (2 min)
+```
+1. Idi ka zelenaj kocki (prednji levi ugao)
+2. Nastavi da držiš W dok prilaziš
+3. Pokušaj da pro?eš kroz zid
+```
+
+**O?ekivano:**
+- ? Kamera se zaustavlja ~0.3m od kocke
+- ? Ne možeš i?i dalje (AABB collision radi)
+
+**Dodatno proveri:**
+- Konzola ? Camera pos (X, Y, Z) bi trebalo da ostane unutar bounds:
+  - X: izme?u -8.7 i +8.7
+  - Y: izme?u 0.8 i 4.7
+  - Z: izme?u -8.7 i +8.7
+
+---
+
+## ?? Troubleshooting Vizuelno
+
+### Problem: Crni Ekran
+```
+Konzola:
+??????????????????????????????????????
+? ERROR: Failed to open shader file ?  ? OVAJ ERROR
+? Assets/Shaders/basic.vert          ?
+??????????????????????????????????????
+```
+
+**Rešenje:**
+```powershell
+# Rebuild
+cmake --build build --config Debug --clean-first
+
+# Proveri Assets
+Test-Path "out\build\x64-Debug\Debug\Assets\Shaders\basic.vert"
+```
+
+---
+
+### Problem: 2D Prikaz (Flat Objects)
+```
+Ekran:
+??????????????????????????????????
+?  ?  ?  ?  ?  ?                ?  ? Sve je FLAT (nema depth-a)
+?                                ?
+?  Sve kocke na istoj dubini     ?
+??????????????????????????????????
+```
+
+**Mogu?i uzroci:**
+1. Depth testing nije enabled
+2. Projection matrica pogrešna
+3. View matrica pogrešna
+
+**Proveri:**
+```cpp
+// Application::init()
+glEnable(GL_DEPTH_TEST);  // Ova linija MORA biti
+```
+
+---
+
+### Problem: Mouse Ne Radi
+```
+Konzola:
+??????????????????????????????????????????????????
+? Frame 100 | Camera pos: (0.0, 1.7, 8.0) | ... ?  ? Pozicija SE NE MENJA
+? Frame 200 | Camera pos: (0.0, 1.7, 8.0) | ... ?     iako pomeram miš
+??????????????????????????????????????????????????
+```
+
+**Proveri:**
+1. `Input::init()` pozvan?
+2. `Input::update()` pozvan svaki frame?
+3. Cursor captured? (`GLFW_CURSOR_DISABLED`)
+
+---
+
+## ? Uspešan Test Izgleda Ovako
+
+### Konzola:
+```
+? Sve INFO poruke
+? "Shader compiled successfully"
+? Nema ERROR poruka
+? Camera pos se menja kada se kre?eš
+```
+
+### Ekran:
+```
+? 3D scena sa dubinom
+? 5 kocki vidljivo (1 crvena + 4 corner)
+? Sivi pod vidljiv
+? Pozadina tamno plavo-siva
+```
+
+### Kontrole:
+```
+? Miš ? Rotacija view-a
+? WASD ? Kretanje u view direction
+? Collision ? Zaustavlja te na zidovima
+? ESC ? Trenutni exit
+```
+
+---
+
+**Ako sve ovo radi ? Phase 2 DONE! ??**
+
+---
+
+Sada pokreni aplikaciju i testtiraj! ??
