@@ -1,4 +1,4 @@
-#include "../Header/Screen.h"
+ï»¿#include "../Header/Screen.h"
 #include "../Header/Log.h"
 #include "../Shader.h"
 #include <GL/glew.h>
@@ -23,7 +23,7 @@ Screen::Screen()
     , m_overlayVAO(0)
     , m_overlayVBO(0)
     , m_shader(nullptr)
-    , m_position(0.0f, 3.0f, -8.8f)  // Front wall at -9.0, screen slightly in front
+    , m_position(0.0f, 3.0f, -8.8f)  
     , m_size(10.0f, 5.0f)
 {
 }
@@ -102,10 +102,10 @@ void Screen::createWhiteTexture()
 
 void Screen::setupScreenQuad()
 {
-    // Unit quad - scaled via model matrix
-    // UV coords flipped horizontally (1.0 - u) to compensate for 180° Y-rotation
+    
+    
     float vertices[] = {
-        // Position          // UV
+        
         -0.5f, -0.5f, 0.0f,  1.0f, 0.0f,
          0.5f, -0.5f, 0.0f,  0.0f, 0.0f,
          0.5f,  0.5f, 0.0f,  0.0f, 1.0f,
@@ -135,7 +135,7 @@ unsigned int Screen::loadTexture(const char* path)
     glGenTextures(1, &textureID);
     
     int width, height, nrChannels;
-    stbi_set_flip_vertically_on_load(true);  // Fix flipped screen texture
+    stbi_set_flip_vertically_on_load(true);  
     unsigned char* data = stbi_load(path, &width, &height, &nrChannels, 0);
     
     if (data)
@@ -205,7 +205,7 @@ void Screen::draw(const glm::mat4& view, const glm::mat4& projection)
     
     m_shader->use();
     
-    // Build model matrix: translate, rotate to face camera, scale
+    
     glm::mat4 model = glm::mat4(1.0f);
     model = glm::translate(model, m_position);
     model = glm::rotate(model, glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
@@ -215,7 +215,7 @@ void Screen::draw(const glm::mat4& view, const glm::mat4& projection)
     m_shader->setMat4("view", view);
     m_shader->setMat4("projection", projection);
     
-    // Select texture
+    
     unsigned int tex = m_whiteTexture;
     if (m_playing && !m_filmTextures.empty())
     {
@@ -226,11 +226,11 @@ void Screen::draw(const glm::mat4& view, const glm::mat4& projection)
     glBindTexture(GL_TEXTURE_2D, tex);
     m_shader->setInt("uTex", 0);
     
-    // Set shader uniforms (debug modes off by default)
+    
     m_shader->setInt("uForceSolid", 0);
     m_shader->setInt("uDebugUV", 0);
     
-    // Disable culling for screen quad
+    
     glDisable(GL_CULL_FACE);
     
     glBindVertexArray(m_VAO);

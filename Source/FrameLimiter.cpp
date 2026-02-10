@@ -1,4 +1,4 @@
-#include "../Header/FrameLimiter.h"
+﻿#include "../Header/FrameLimiter.h"
 #include "../Header/Log.h"
 #include <GLFW/glfw3.h>
 #include <thread>
@@ -26,12 +26,12 @@ void FrameLimiter::endFrame()
     double frameEndTime = glfwGetTime();
     double frameTime = frameEndTime - m_frameStartTime;
 
-    // Sleep to enforce frame cap (but leave some margin for spin-wait)
+    
     if (frameTime < m_targetFrameTime)
     {
         double sleepTime = m_targetFrameTime - frameTime;
         
-        // Sleep for most of the remaining time (leave 1ms for spin-wait to avoid oversleep)
+        
         if (sleepTime > 0.001)
         {
             std::this_thread::sleep_for(std::chrono::microseconds(
@@ -39,18 +39,18 @@ void FrameLimiter::endFrame()
             ));
         }
 
-        // Spin-wait for the remaining time to be precise
+        
         while (glfwGetTime() - m_frameStartTime < m_targetFrameTime)
         {
-            // Busy wait for precise timing
+            
         }
     }
 
-    // Calculate actual delta time after frame limiting
+    
     double actualFrameEnd = glfwGetTime();
     m_deltaTime = static_cast<float>(actualFrameEnd - m_frameStartTime);
 
-    // FPS tracking - print once per second
+    
     m_frameCount++;
     m_fpsTimer += m_deltaTime;
     

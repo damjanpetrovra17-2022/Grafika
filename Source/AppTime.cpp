@@ -1,7 +1,6 @@
-#include "../Header/AppTime.h"
+﻿#include "../Header/AppTime.h"
 #include <GLFW/glfw3.h>
 
-// Initialize static members
 double Time::s_lastFrameTime = 0.0;
 float Time::s_deltaTime = 0.0f;
 

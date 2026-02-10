@@ -19,6 +19,7 @@ set(SOURCE_FILES
     Source/Door.cpp
     Source/FrameLimiter.cpp
     Source/HUD.cpp
+    Source/HumanMesh.cpp
     Source/Input.cpp
     Source/Log.cpp
     Source/Main.cpp
@@ -28,6 +29,7 @@ set(SOURCE_FILES
     Source/Scene.cpp
     Source/Screen.cpp
     Source/SeatGrid.cpp
+    Source/SeatMesh.cpp
     Source/Util.cpp
     Source/Window.cpp
     Rectangle.cpp
@@ -46,6 +48,7 @@ set(HEADER_FILES
     Header/Door.h
     Header/FrameLimiter.h
     Header/HUD.h
+    Header/HumanMesh.h
     Header/Input.h
     Header/Light.h
     Header/Log.h
@@ -57,6 +60,7 @@ set(HEADER_FILES
     Header/Screen.h
     Header/Seat.h
     Header/SeatGrid.h
+    Header/SeatMesh.h
     Header/stb_image.h
     Header/Util.h
     Header/Window.h
@@ -109,15 +113,20 @@ set_target_properties(kostur PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_BINARY_DIR}/Release"
 )
 
-# Copy Assets folder to build directory
-add_custom_command(TARGET kostur POST_BUILD
+# Create a custom target that always copies Assets
+add_custom_target(CopyAssets ALL
     COMMAND ${CMAKE_COMMAND} -E copy_directory
         ${CMAKE_SOURCE_DIR}/Assets
-        $<TARGET_FILE_DIR:kostur>/Assets
+        ${CMAKE_BINARY_DIR}/Debug/Assets
     COMMENT "Copying Assets folder to build directory"
+    VERBATIM
 )
+
+# Make sure kostur depends on CopyAssets so assets are copied before running
+add_dependencies(kostur CopyAssets)
 
 # Print helpful information
 message(STATUS "Target executable name: kostur")
 message(STATUS "Output directory (Debug): ${CMAKE_BINARY_DIR}/Debug")
 message(STATUS "Output directory (Release): ${CMAKE_BINARY_DIR}/Release")
+message(STATUS "Assets will be copied on every build")

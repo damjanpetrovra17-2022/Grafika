@@ -1,4 +1,4 @@
-#include "../Header/Window.h"
+﻿#include "../Header/Window.h"
 #include "../Header/Log.h"
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
@@ -19,7 +19,7 @@ bool Window::init()
 {
     LOG_INFO("Creating fullscreen window...");
 
-    // Get the primary monitor
+    
     GLFWmonitor* primaryMonitor = glfwGetPrimaryMonitor();
     if (!primaryMonitor)
     {
@@ -27,7 +27,7 @@ bool Window::init()
         return false;
     }
 
-    // Get the current video mode of the primary monitor
+    
     const GLFWvidmode* videoMode = glfwGetVideoMode(primaryMonitor);
     if (!videoMode)
     {
@@ -38,12 +38,12 @@ bool Window::init()
     m_width = videoMode->width;
     m_height = videoMode->height;
 
-    // Request OpenGL 3.3 core profile
+    
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    // Create fullscreen window using the monitor's current video mode
+    
     m_window = glfwCreateWindow(m_width, m_height, "3D Cinema", primaryMonitor, nullptr);
     if (!m_window)
     {
@@ -51,10 +51,10 @@ bool Window::init()
         return false;
     }
 
-    // Make the OpenGL context current
+    
     glfwMakeContextCurrent(m_window);
 
-    // Initialize GLEW
+    
     glewExperimental = GL_TRUE;
     GLenum glewStatus = glewInit();
     if (glewStatus != GLEW_OK)
@@ -65,10 +65,10 @@ bool Window::init()
         return false;
     }
 
-    // Set up key callback for ESC handling
+    
     glfwSetKeyCallback(m_window, keyCallback);
 
-    // Disable VSync (we'll use our own frame limiter)
+    
     glfwSwapInterval(0);
 
     LOG_INFO("Window created successfully: " + std::to_string(m_width) + "x" + std::to_string(m_height));
@@ -125,7 +125,7 @@ void Window::keyCallback(GLFWwindow* window, int key, int scancode, int action, 
     (void)scancode;
     (void)mods;
 
-    // ESC key exits immediately
+    
     if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
     {
         glfwSetWindowShouldClose(window, GLFW_TRUE);

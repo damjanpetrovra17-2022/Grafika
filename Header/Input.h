@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 struct GLFWwindow;
 
@@ -8,21 +8,21 @@ public:
     static void init(GLFWwindow* window);
     static void update();
 
-    // Key queries
+    
     static bool isKeyDown(int key);
-    static bool isKeyPressed(int key);  // Edge-triggered (just pressed this frame)
+    static bool isKeyPressed(int key);  
 
-    // Mouse queries
+    
     static double getMouseX();
     static double getMouseY();
     static float getMouseDeltaX();
     static float getMouseDeltaY();
 
-    // Mouse button queries
-    static bool isMouseButtonDown(int button);
-    static bool isMouseButtonPressed(int button);  // Edge-triggered
     
-    // Cursor mode
+    static bool isMouseButtonDown(int button);
+    static bool isMouseButtonPressed(int button);  
+    
+    
     static void toggleCursorMode();
     static bool isCursorVisible();
 

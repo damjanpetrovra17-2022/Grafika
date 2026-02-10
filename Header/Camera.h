@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -60,5 +60,5 @@ private:
 
     AABB m_bounds;
     float m_boundsPadding;
-    std::vector<AABB> m_additionalBounds;  // For stairs, platforms, etc.
+    std::vector<AABB> m_additionalBounds;  
 };

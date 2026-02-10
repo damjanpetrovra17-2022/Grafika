@@ -1,4 +1,4 @@
-#include "../Header/Person.h"
+﻿#include "../Header/Person.h"
 #include "../Header/Seat.h"
 #include <algorithm>
 
@@ -9,25 +9,37 @@ Person::Person()
     , m_stage(MovementStage::ToRowDepth)
     , m_mode(TravelMode::Entering)
     , m_speed(2.0f)
+    , m_rotationY(0.0f)
     , m_baseColor(1.0f)
+    , m_textureIndex(0)
 {
 }
 
-Person::Person(const glm::vec3& doorPos, Seat* targetSeat, const glm::vec3& baseColor)
+Person::Person(const glm::vec3& doorPos, Seat* targetSeat, const glm::vec3& baseColor, int textureIndex)
     : m_position(doorPos)
     , m_doorPos(doorPos)
     , m_targetSeat(targetSeat)
     , m_stage(MovementStage::ToRowDepth)
     , m_mode(TravelMode::Entering)
     , m_speed(2.0f)
+    , m_rotationY(0.0f)
     , m_baseColor(baseColor)
+    , m_textureIndex(textureIndex)
 {
+    
+    m_position.y = 0.5f + 0.6f;
+}
+
+float Person::getAisleX() const
+{
+    
+    return LEFT_AISLE_X;
 }
 
 void Person::update(float deltaTime)
 {
     if (m_stage == MovementStage::Seated || m_stage == MovementStage::Exited)
-        return;  // No movement needed
+        return;  
     
     if (m_mode == TravelMode::Entering)
     {
@@ -45,14 +57,43 @@ void Person::updateEntering(float deltaTime)
         return;
     
     const glm::vec3& seatPos = m_targetSeat->position;
+    const float aisleX = getAisleX();  
     
     switch (m_stage)
     {
         case MovementStage::ToRowDepth:
         {
-            // Stage 1: Move along aisle (Z) to target row depth
-            // Keep X at aisle position, keep Y near current
-            m_position.x = AISLE_X;
+            
+            
+            m_position.x = aisleX;
+            
+            
+            if (seatPos.z > m_position.z)
+                m_rotationY = 0.0f;  
+            else
+                m_rotationY = 3.14159f;  
+            
+            
+            
+            
+            const float rowSpacing = 1.2f;  
+            const float rowElevationStep = 0.3f;  
+            const float originZ = 2.0f;  
+            const float groundFloorY = 0.5f;  
+            
+            
+            float targetRow = (seatPos.z - originZ) / rowSpacing;
+            float currentRow = (m_position.z - originZ) / rowSpacing;
+            
+            
+            if (currentRow < 0.0f) currentRow = 0.0f;
+            if (currentRow > targetRow) currentRow = targetRow;
+            
+            
+            float groundY = groundFloorY + currentRow * rowElevationStep + 0.6f;  
+            
+            
+            m_position.y = groundY;
             
             if (moveToward(m_position.z, seatPos.z, m_speed, deltaTime))
             {
@@ -63,8 +104,8 @@ void Person::updateEntering(float deltaTime)
         
         case MovementStage::ClimbToRowHeight:
         {
-            // Stage 2: Climb to target row height (Y)
-            // Stay at current X and Z
+            
+            
             if (moveToward(m_position.y, seatPos.y, m_speed, deltaTime))
             {
                 m_stage = MovementStage::ToSeatX;
@@ -74,13 +115,21 @@ void Person::updateEntering(float deltaTime)
         
         case MovementStage::ToSeatX:
         {
-            // Stage 3: Move across row to seat X
-            // Keep Y and Z stable
+            
+            
+            
+            
+            if (seatPos.x > m_position.x)
+                m_rotationY = 1.5708f;  
+            else
+                m_rotationY = -1.5708f;  
+            
             if (moveToward(m_position.x, seatPos.x, m_speed, deltaTime))
             {
-                // Snap to final seat position with slight offset (sit on seat)
-                const float personHeight = 1.7f;
+                
+                const float personHeight = 1.2f;
                 m_position = seatPos + glm::vec3(0.0f, personHeight * 0.5f, 0.0f);
+                m_rotationY = 3.14159f;  
                 m_stage = MovementStage::Seated;
             }
             break;
@@ -93,22 +142,28 @@ void Person::updateEntering(float deltaTime)
 
 void Person::updateExiting(float deltaTime)
 {
-    // Phase 10 - reverse path
-    // For now, just a stub structure
+    
+    const float aisleX = getAisleX();  
     
     switch (m_stage)
     {
         case MovementStage::Seated:
         {
-            // Start exit - move back to aisle
-            m_stage = MovementStage::ToSeatX;  // Reuse stages in reverse
+            
+            m_stage = MovementStage::ToSeatX;  
             break;
         }
         
         case MovementStage::ToSeatX:
         {
-            // Move from seat X back to aisle X
-            if (moveToward(m_position.x, AISLE_X, m_speed, deltaTime))
+            
+            
+            if (aisleX > m_position.x)
+                m_rotationY = 1.5708f;  
+            else
+                m_rotationY = -1.5708f;  
+            
+            if (moveToward(m_position.x, aisleX, m_speed, deltaTime))
             {
                 m_stage = MovementStage::ClimbToRowHeight;
             }
@@ -117,22 +172,42 @@ void Person::updateExiting(float deltaTime)
         
         case MovementStage::ClimbToRowHeight:
         {
-            // Move down to door height
-            if (moveToward(m_position.y, m_doorPos.y, m_speed, deltaTime))
-            {
-                m_stage = MovementStage::ToRowDepth;
-            }
+            
+            m_stage = MovementStage::ToRowDepth;
             break;
         }
         
         case MovementStage::ToRowDepth:
         {
-            // Move along aisle back to door Z
-            m_position.x = AISLE_X;
+            
+            m_position.x = aisleX;
+            
+            
+            if (m_doorPos.z > m_position.z)
+                m_rotationY = 0.0f;  
+            else
+                m_rotationY = 3.14159f;  
+            
+            
+            const float rowSpacing = 1.2f;
+            const float rowElevationStep = 0.3f;
+            const float originZ = 2.0f;
+            const float groundFloorY = 0.5f;
+            
+            float currentRow = (m_position.z - originZ) / rowSpacing;
+            if (currentRow < 0.0f) currentRow = 0.0f;
+            
+            
+            float groundY = groundFloorY + currentRow * rowElevationStep + 0.6f;
+            
+            
+            m_position.y = groundY;
             
             if (moveToward(m_position.z, m_doorPos.z, m_speed, deltaTime))
             {
-                m_position = m_doorPos;
+                m_position.x = m_doorPos.x;
+                m_position.y = groundFloorY + 0.6f;  
+                m_position.z = m_doorPos.z;
                 m_stage = MovementStage::Exited;
             }
             break;
@@ -150,7 +225,7 @@ bool Person::moveToward(float& current, float target, float speed, float dt)
     if (std::abs(diff) < EPSILON)
     {
         current = target;
-        return true;  // Reached target
+        return true;  
     }
     
     float step = speed * dt;
@@ -169,6 +244,6 @@ void Person::startExiting()
     if (m_stage == MovementStage::Seated)
     {
         m_mode = TravelMode::Exiting;
-        m_stage = MovementStage::ToSeatX;  // Start exit sequence
+        m_stage = MovementStage::ToSeatX;  
     }
 }

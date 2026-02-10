@@ -1,4 +1,4 @@
-#include "../Header/Camera.h"
+﻿#include "../Header/Camera.h"
 #include "../Header/Input.h"
 #include <GLFW/glfw3.h>
 #include <algorithm>
@@ -43,15 +43,15 @@ Camera::Camera(const glm::vec3& position, float yaw, float pitch)
 
 void Camera::update(float deltaTime)
 {
-    // Process mouse look (always enabled - cursor locked at center)
+    
     float mouseX = Input::getMouseDeltaX();
     float mouseY = Input::getMouseDeltaY();
     processMouseLook(mouseX, mouseY);
 
-    // Process keyboard movement
+    
     processMovement(deltaTime);
 
-    // Clamp position to bounds
+    
     clampToBounds();
 }
 
@@ -67,14 +67,14 @@ glm::mat4 Camera::projectionMatrix(float aspect) const
 
 void Camera::updateVectors()
 {
-    // Calculate front vector from yaw and pitch
+    
     glm::vec3 front;
     front.x = cos(glm::radians(m_yaw)) * cos(glm::radians(m_pitch));
     front.y = sin(glm::radians(m_pitch));
     front.z = sin(glm::radians(m_yaw)) * cos(glm::radians(m_pitch));
     m_front = glm::normalize(front);
 
-    // Recalculate right and up vectors
+    
     m_right = glm::normalize(glm::cross(m_front, m_worldUp));
     m_up = glm::normalize(glm::cross(m_right, m_front));
 }
@@ -85,9 +85,9 @@ void Camera::processMouseLook(float deltaX, float deltaY)
     deltaY *= m_mouseSensitivity;
 
     m_yaw += deltaX;
-    m_pitch -= deltaY;  // Inverted Y for natural feel
+    m_pitch -= deltaY;  
 
-    // Clamp pitch to avoid gimbal lock / flipping
+    
     m_pitch = std::max(-89.0f, std::min(89.0f, m_pitch));
 
     updateVectors();
@@ -97,13 +97,13 @@ void Camera::processMovement(float deltaTime)
 {
     float velocity = m_moveSpeed * deltaTime;
 
-    // Forward direction on XZ plane (no Y component for ground movement)
+    
     glm::vec3 forwardXZ = glm::normalize(glm::vec3(m_front.x, 0.0f, m_front.z));
     glm::vec3 rightXZ = glm::normalize(glm::vec3(m_right.x, 0.0f, m_right.z));
 
     glm::vec3 desiredPosition = m_position;
 
-    // Arrow keys for movement (forward/back, strafe left/right)
+    
     if (Input::isKeyDown(GLFW_KEY_UP) || Input::isKeyDown(GLFW_KEY_W))
     {
         desiredPosition += forwardXZ * velocity;
@@ -121,18 +121,18 @@ void Camera::processMovement(float deltaTime)
         desiredPosition += rightXZ * velocity;
     }
     
-    // Collision resolution
+    
     const float cameraRadius = 0.30f;
     const float epsilon = 0.001f;
-    const float maxStepHeight = 0.4f;  // Maximum height we can step up
+    const float maxStepHeight = 0.4f;  
     
-    // Find platform/stair we're standing on
-    float supportY = m_position.y;  // Default: stay at current height
+    
+    float supportY = m_position.y;  
     bool foundSupport = false;
     
     for (const AABB& bound : m_additionalBounds)
     {
-        // Check if XZ position is over this platform/stair
+        
         if (desiredPosition.x >= bound.min.x - cameraRadius && 
             desiredPosition.x <= bound.max.x + cameraRadius &&
             desiredPosition.z >= bound.min.z - cameraRadius && 
@@ -140,7 +140,7 @@ void Camera::processMovement(float deltaTime)
         {
             float platformTop = bound.max.y;
             
-            // If we're close to standing on this platform
+            
             if (m_position.y >= platformTop - maxStepHeight && 
                 m_position.y <= platformTop + epsilon)
             {
@@ -150,18 +150,18 @@ void Camera::processMovement(float deltaTime)
         }
     }
     
-    // Check horizontal collision (prevent passing through walls)
+    
     glm::vec3 resolvedPosition = desiredPosition;
-    resolvedPosition.y = supportY;  // Use support height
+    resolvedPosition.y = supportY;  
     
     for (const AABB& bound : m_additionalBounds)
     {
-        // Only check horizontal collision if we're at a similar height
+        
         if (resolvedPosition.y > bound.max.y + cameraRadius || 
             resolvedPosition.y < bound.min.y - cameraRadius)
-            continue;  // Too high or too low to collide
+            continue;  
         
-        // Check XZ collision
+        
         glm::vec3 closestXZ;
         closestXZ.x = glm::clamp(resolvedPosition.x, bound.min.x, bound.max.x);
         closestXZ.z = glm::clamp(resolvedPosition.z, bound.min.z, bound.max.z);
@@ -172,7 +172,7 @@ void Camera::processMovement(float deltaTime)
         
         if (distSq < cameraRadius * cameraRadius && distSq > epsilon)
         {
-            // Collision - push out horizontally
+            
             float dist = std::sqrt(distSq);
             float penetration = cameraRadius - dist;
             glm::vec2 pushDir = glm::normalize(glm::vec2(dx, dz));
@@ -185,14 +185,9 @@ void Camera::processMovement(float deltaTime)
     m_position = resolvedPosition;
 }
 
-
-
-
-
-
 void Camera::clampToBounds()
 {
-    // Apply padding to bounds
+    
     AABB paddedBounds(
         m_bounds.min + glm::vec3(m_boundsPadding),
         m_bounds.max - glm::vec3(m_boundsPadding)

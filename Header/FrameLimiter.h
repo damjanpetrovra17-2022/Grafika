@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 class FrameLimiter
 {
@@ -16,7 +16,7 @@ private:
     double m_frameStartTime;
     float m_deltaTime;
     
-    // FPS tracking
+    
     double m_fpsTimer;
     int m_frameCount;
     double m_currentFPS;

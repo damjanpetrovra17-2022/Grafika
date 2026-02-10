@@ -1,4 +1,4 @@
-#include "../Header/HUD.h"
+﻿#include "../Header/HUD.h"
 #include "../Header/Log.h"
 #include "../Shader.h"
 #include "../Header/stb_image.h"
@@ -27,7 +27,7 @@ void HUD::init(int screenWidth, int screenHeight)
     m_screenWidth = screenWidth;
     m_screenHeight = screenHeight;
     
-    // Create shader
+    
     m_shader = new Shader("Assets/Shaders/hud.vert", "Assets/Shaders/hud.frag");
     if (m_shader->ID == 0)
     {
@@ -37,10 +37,10 @@ void HUD::init(int screenWidth, int screenHeight)
     
     LOG_INFO("[HUD] Shader created successfully (ID: " + std::to_string(m_shader->ID) + ")");
     
-    // Load texture
+    
     loadTexture("Assets/Textures/hud_nametag.png");
     
-    // Create quad geometry
+    
     createQuad();
     
     m_initialized = true;
@@ -52,8 +52,8 @@ void HUD::loadTexture(const char* path)
     LOG_INFO("[HUD] Loading texture: " + std::string(path));
     
     int width, height, channels;
-    stbi_set_flip_vertically_on_load(true); // Fix flipped HUD texture
-    unsigned char* data = stbi_load(path, &width, &height, &channels, 4); // Force RGBA
+    stbi_set_flip_vertically_on_load(true); 
+    unsigned char* data = stbi_load(path, &width, &height, &channels, 4); 
     
     if (!data)
     {
@@ -79,34 +79,34 @@ void HUD::loadTexture(const char* path)
 
 void HUD::createQuad()
 {
-    // HUD quad in NDC space (bottom-right corner)
-    // Assuming ~300x100 pixel nametag at bottom-right
+    
+    
     float hudWidth = 300.0f;
     float hudHeight = 100.0f;
     
-    // Convert to NDC (-1 to 1)
+    
     float ndcWidth = (hudWidth / m_screenWidth) * 2.0f;
     float ndcHeight = (hudHeight / m_screenHeight) * 2.0f;
     
-    // Position: bottom-right with small padding
-    float paddingX = 0.02f; // 2% padding from right edge
-    float paddingY = 0.02f; // 2% padding from bottom edge
+    
+    float paddingX = 0.02f; 
+    float paddingY = 0.02f; 
     
     float right = 1.0f - paddingX;
     float left = right - ndcWidth;
     float bottom = -1.0f + paddingY;
     float top = bottom + ndcHeight;
     
-    // Quad vertices: Position (x, y) + UV (u, v)
+    
     float vertices[] = {
-        // Position         // UV
-        left,  bottom,      0.0f, 0.0f,  // Bottom-left
-        right, bottom,      1.0f, 0.0f,  // Bottom-right
-        right, top,         1.0f, 1.0f,  // Top-right
         
-        left,  bottom,      0.0f, 0.0f,  // Bottom-left
-        right, top,         1.0f, 1.0f,  // Top-right
-        left,  top,         0.0f, 1.0f   // Top-left
+        left,  bottom,      0.0f, 0.0f,  
+        right, bottom,      1.0f, 0.0f,  
+        right, top,         1.0f, 1.0f,  
+        
+        left,  bottom,      0.0f, 0.0f,  
+        right, top,         1.0f, 1.0f,  
+        left,  top,         0.0f, 1.0f   
     };
     
     glGenVertexArrays(1, &m_VAO);
@@ -116,11 +116,11 @@ void HUD::createQuad()
     glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
     
-    // Position attribute (location = 0)
+    
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
     
-    // UV attribute (location = 1)
+    
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
     glEnableVertexAttribArray(1);
     
@@ -134,7 +134,7 @@ void HUD::draw()
     if (!m_initialized || !m_shader || m_VAO == 0 || m_texture == 0)
         return;
     
-    // Save current OpenGL state
+    
     GLboolean depthTestWasEnabled = glIsEnabled(GL_DEPTH_TEST);
     GLboolean blendWasEnabled = glIsEnabled(GL_BLEND);
     GLint blendSrcRGB, blendDstRGB, blendSrcAlpha, blendDstAlpha;
@@ -143,12 +143,12 @@ void HUD::draw()
     glGetIntegerv(GL_BLEND_SRC_ALPHA, &blendSrcAlpha);
     glGetIntegerv(GL_BLEND_DST_ALPHA, &blendDstAlpha);
     
-    // Setup for HUD rendering
+    
     glDisable(GL_DEPTH_TEST);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     
-    // Draw HUD
+    
     m_shader->use();
     
     glActiveTexture(GL_TEXTURE0);
@@ -159,7 +159,7 @@ void HUD::draw()
     glDrawArrays(GL_TRIANGLES, 0, 6);
     glBindVertexArray(0);
     
-    // Restore OpenGL state
+    
     if (depthTestWasEnabled)
         glEnable(GL_DEPTH_TEST);
     else

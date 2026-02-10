@@ -1,9 +1,9 @@
-#include "Shader.h"
+﻿#include "Shader.h"
 #include <iostream>
 
 Shader::Shader(const char* vertexPath, const char* fragmentPath)
 {
-    // Read shader files
+    
     std::ifstream vFile(vertexPath);
     std::ifstream fFile(fragmentPath);
 
@@ -34,12 +34,12 @@ Shader::Shader(const char* vertexPath, const char* fragmentPath)
     const char* vShaderCode = vCode.c_str();
     const char* fShaderCode = fCode.c_str();
 
-    // Vertex shader
+    
     unsigned int vertex = glCreateShader(GL_VERTEX_SHADER);
     glShaderSource(vertex, 1, &vShaderCode, NULL);
     glCompileShader(vertex);
 
-    // Check vertex shader compilation
+    
     int success;
     char infoLog[512];
     glGetShaderiv(vertex, GL_COMPILE_STATUS, &success);
@@ -53,12 +53,12 @@ Shader::Shader(const char* vertexPath, const char* fragmentPath)
         std::cout << "Vertex shader compiled successfully" << std::endl;
     }
 
-    // Fragment shader
+    
     unsigned int fragment = glCreateShader(GL_FRAGMENT_SHADER);
     glShaderSource(fragment, 1, &fShaderCode, NULL);
     glCompileShader(fragment);
 
-    // Check fragment shader compilation
+    
     glGetShaderiv(fragment, GL_COMPILE_STATUS, &success);
     if (!success)
     {
@@ -70,13 +70,13 @@ Shader::Shader(const char* vertexPath, const char* fragmentPath)
         std::cout << "Fragment shader compiled successfully" << std::endl;
     }
 
-    // Shader program
+    
     ID = glCreateProgram();
     glAttachShader(ID, vertex);
     glAttachShader(ID, fragment);
     glLinkProgram(ID);
 
-    // Check program linking
+    
     glGetProgramiv(ID, GL_LINK_STATUS, &success);
     if (!success)
     {

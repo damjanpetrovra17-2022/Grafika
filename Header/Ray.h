@@ -1,11 +1,11 @@
-#pragma once
+﻿#pragma once
 
 #include <glm/glm.hpp>
 
 struct Ray
 {
     glm::vec3 origin;
-    glm::vec3 direction;  // Should be normalized
+    glm::vec3 direction;  
     
     Ray()
         : origin(0.0f)

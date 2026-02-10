@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include <glm/glm.hpp>
 #include "Header/AABB.h"
@@ -15,8 +15,8 @@ struct Seat
     int row;
     int col;
     SeatState state;
-    glm::vec3 position;    // Center position in world space
-    AABB bounds;           // For ray picking (Phase 6)
+    glm::vec3 position;    
+    AABB bounds;           
     
     Seat()
         : row(0)

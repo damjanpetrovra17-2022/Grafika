@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include <glm/glm.hpp>
 
@@ -26,14 +26,14 @@ public:
 private:
     bool m_isOpen;
     glm::vec3 m_position;
-    glm::vec3 m_hingePosition;  // Point where door rotates
+    glm::vec3 m_hingePosition;  
     glm::vec3 m_size;
     glm::vec3 m_color;
     
-    // Animation
-    float m_currentAngle;  // Current rotation angle
-    float m_targetAngle;   // Target rotation angle
-    float m_rotationSpeed; // Degrees per second
+    
+    float m_currentAngle;  
+    float m_targetAngle;   
+    float m_rotationSpeed; 
     
     DebugCube* m_cubeMesh;
 };

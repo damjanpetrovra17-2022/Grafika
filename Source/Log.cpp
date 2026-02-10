@@ -1,9 +1,9 @@
-#include "../Header/Log.h"
+﻿#include "../Header/Log.h"
 
 void Log::init()
 {
-    // Placeholder for future logging initialization
-    // Could set up log files, configure output streams, etc.
+    
+    
 }
 
 void Log::info(const std::string& message)

@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "Seat.h"
 #include "AABB.h"
@@ -7,14 +7,13 @@
 
 class Shader;
 class DebugCube;
+class SeatMesh;
 
-// Stepped platform for stadium seating
-// Each row has one continuous platform that seats rest on
 struct StepPlatform
 {
-    glm::vec3 position;     // Center position
-    glm::vec3 size;         // Full size (width, height, depth)
-    AABB bounds;            // Collision bounds
+    glm::vec3 position;     
+    glm::vec3 size;         
+    AABB bounds;            
     
     StepPlatform()
         : position(0.0f)
@@ -43,6 +42,7 @@ public:
     
     void init(
         DebugCube* cubeMesh,
+        SeatMesh* seatMesh,
         const glm::vec3& origin,
         float seatSpacingX,
         float seatSpacingZ,
@@ -54,24 +54,25 @@ public:
     Seat* getSeat(int row, int col);
     const Seat* getSeat(int row, int col) const;
     
-    // Phase 7: Purchase N adjacent seats (group seating)
-    // Returns true if successful, false if no valid block found
-    // Groups MUST be in same row, fully adjacent (no gaps)
+    
+    
+    
     bool purchaseAdjacent(int N);
     
-    // Get platform collision bounds for camera
+    
     std::vector<AABB> getPlatformBounds() const;
     
 private:
     Seat m_seats[ROWS][COLS];
-    std::vector<StepPlatform> m_platforms;  // One platform per row
-    DebugCube* m_cubeMesh;  // Shared mesh (not owned)
+    std::vector<StepPlatform> m_platforms;  
+    DebugCube* m_cubeMesh;  
+    SeatMesh* m_seatMesh;   
     
     glm::vec3 m_origin;
     float m_seatSpacingX;
     float m_seatSpacingZ;
     float m_rowElevationStep;
-    glm::vec3 m_seatHalfExtents;  // Half-size of seat cuboid for AABB
+    glm::vec3 m_seatHalfExtents;  
     
     void createPlatforms();
     void createSeats();

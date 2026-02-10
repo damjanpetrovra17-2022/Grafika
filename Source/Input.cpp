@@ -1,4 +1,4 @@
-#include "../Header/Input.h"
+﻿#include "../Header/Input.h"
 #include <GLFW/glfw3.h>
 #include <cstring>
 
@@ -11,7 +11,7 @@ double Input::s_lastMouseY = 0.0;
 float Input::s_mouseDeltaX = 0.0f;
 float Input::s_mouseDeltaY = 0.0f;
 bool Input::s_firstMouse = true;
-bool Input::s_cursorVisible = false;  // Always hidden (locked at center)
+bool Input::s_cursorVisible = false;  
 
 bool Input::s_currentKeys[512] = { false };
 bool Input::s_previousKeys[512] = { false };
@@ -23,15 +23,15 @@ void Input::init(GLFWwindow* window)
     s_window = window;
     s_firstMouse = true;
 
-    // Lock cursor at center for FPS camera (always)
+    
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
-    // Get initial mouse position
+    
     glfwGetCursorPos(window, &s_mouseX, &s_mouseY);
     s_lastMouseX = s_mouseX;
     s_lastMouseY = s_mouseY;
 
-    // Initialize key and mouse button states
+    
     std::memset(s_currentKeys, 0, sizeof(s_currentKeys));
     std::memset(s_previousKeys, 0, sizeof(s_previousKeys));
     std::memset(s_currentMouseButtons, 0, sizeof(s_currentMouseButtons));
@@ -42,23 +42,23 @@ void Input::update()
 {
     if (!s_window) return;
 
-    // Copy current states to previous
+    
     std::memcpy(s_previousKeys, s_currentKeys, sizeof(s_currentKeys));
     std::memcpy(s_previousMouseButtons, s_currentMouseButtons, sizeof(s_currentMouseButtons));
 
-    // Update key states
+    
     for (int i = 0; i < 512; ++i)
     {
         s_currentKeys[i] = (glfwGetKey(s_window, i) == GLFW_PRESS);
     }
 
-    // Update mouse button states
+    
     for (int i = 0; i < 8; ++i)
     {
         s_currentMouseButtons[i] = (glfwGetMouseButton(s_window, i) == GLFW_PRESS);
     }
 
-    // Update mouse position and calculate delta
+    
     glfwGetCursorPos(s_window, &s_mouseX, &s_mouseY);
 
     if (s_firstMouse)
@@ -134,7 +134,7 @@ void Input::toggleCursorMode()
         glfwSetInputMode(s_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     }
     
-    // Reset first mouse to avoid jump
+    
     s_firstMouse = true;
 }
 

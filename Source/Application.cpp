@@ -1,4 +1,4 @@
-#include "../Header/Application.h"
+﻿#include "../Header/Application.h"
 #include "../Header/Log.h"
 #include "../Header/AppTime.h"
 #include "../Header/Window.h"
@@ -6,6 +6,8 @@
 #include "../Header/Input.h"
 #include "../Header/Camera.h"
 #include "../Header/DebugCube.h"
+#include "../Header/SeatMesh.h"
+#include "../Header/HumanMesh.h"
 #include "../Header/Scene.h"
 #include "../Header/SeatGrid.h"
 #include "../Header/RayPicker.h"
@@ -32,8 +34,11 @@ Application::Application()
     , m_frameLimiter(nullptr)
     , m_camera(nullptr)
     , m_debugCube(nullptr)
+    , m_seatMesh(nullptr)
+    , m_humanMesh(nullptr)
     , m_basicShader(nullptr)
     , m_phongShader(nullptr)
+    , m_humanShader(nullptr)
     , m_scene(nullptr)
     , m_seatGrid(nullptr)
     , m_rayPicker(nullptr)
@@ -83,6 +88,13 @@ bool Application::init()
     m_debugCube = std::unique_ptr<DebugCube>(new DebugCube());
     m_debugCube->init();
     
+    m_seatMesh = std::unique_ptr<SeatMesh>(new SeatMesh());
+    if (!m_seatMesh->loadOBJ("Assets/Models/seat.obj"))
+    {
+        LOG_ERROR("Failed to load seat mesh, falling back to cubes");
+        m_seatMesh.reset();
+    }
+    
     m_basicShader = std::unique_ptr<Shader>(new Shader(
         "Assets/Shaders/basic.vert",
         "Assets/Shaders/basic.frag"
@@ -105,11 +117,34 @@ bool Application::init()
         return false;
     }
     
-    // Initialize depth test (Phase 11: enabled by default)
+    m_humanShader = std::unique_ptr<Shader>(new Shader(
+        "Assets/Shaders/human.vert",
+        "Assets/Shaders/human.frag"
+    ));
+    
+    if (m_humanShader->ID == 0)
+    {
+        LOG_ERROR("Failed to create human shader!");
+        m_humanShader.reset();
+    }
+    
+    m_humanMesh = std::unique_ptr<HumanMesh>(new HumanMesh());
+    if (!m_humanMesh->loadOBJ("Assets/Models/human1.obj"))
+    {
+        LOG_ERROR("Failed to load human mesh, falling back to cubes");
+        m_humanMesh.reset();
+    }
+    else if (!m_humanMesh->loadMultipleTextures("Assets/Textures", 10))
+    {
+        LOG_ERROR("Failed to load human textures, falling back to cubes");
+        m_humanMesh.reset();
+    }
+    
+    
     glEnable(GL_DEPTH_TEST);
     m_depthTestEnabled = true;
     
-    // Initialize culling (Phase 11: disabled by default)
+    
     glDisable(GL_CULL_FACE);
     glCullFace(GL_BACK);
     glFrontFace(GL_CCW);
@@ -122,7 +157,7 @@ bool Application::init()
     
     m_seatGrid = std::unique_ptr<SeatGrid>(new SeatGrid());
     glm::vec3 seatOrigin(0.0f, 1.0f, 2.0f);
-    m_seatGrid->init(m_debugCube.get(), seatOrigin, 1.0f, 1.2f, 0.3f);
+    m_seatGrid->init(m_debugCube.get(), m_seatMesh.get(), seatOrigin, 1.0f, 1.2f, 0.3f);
     
     std::vector<AABB> platformBounds = m_seatGrid->getPlatformBounds();
     std::vector<AABB> sceneBounds = m_scene->getCollidableBounds();
@@ -137,6 +172,11 @@ bool Application::init()
     m_crosshair->init();
     
     m_peopleManager = std::unique_ptr<PeopleManager>(new PeopleManager());
+    if (m_humanMesh && m_humanShader)
+    {
+        m_peopleManager->setHumanMesh(m_humanMesh.get());
+        m_peopleManager->setHumanShader(m_humanShader.get());
+    }
     
     m_screen = std::unique_ptr<Screen>(new Screen());
     m_screen->init();
@@ -147,7 +187,7 @@ bool Application::init()
     m_hud = std::unique_ptr<HUD>(new HUD());
     m_hud->init(m_window->width(), m_window->height());
     
-    // Start in Booking state
+    
     enterState(AppState::Booking);
     
     m_running = true;
@@ -170,10 +210,10 @@ void Application::run()
         
         float dt = Time::deltaTime();
         
-        // State machine update
+        
         updateStateMachine(dt);
         
-        // Handle inputs based on state
+        
         if (m_currentState == AppState::Booking)
         {
             handleSeatPicking();
@@ -181,31 +221,31 @@ void Application::run()
         }
         handleEnterKey();
         
-        // Handle render toggles (Phase 11: works in all states)
+        
         handleRenderToggles();
         
-        // Update camera
+        
         m_camera->update(dt);
         
-        // Update door animation
+        
         if (m_door)
         {
             m_door->update(dt);
         }
         
-        // Update people
+        
         if (m_peopleManager)
         {
             m_peopleManager->update(dt);
         }
         
-        // Update screen
+        
         if (m_screen)
         {
             m_screen->update(dt);
         }
         
-        // Debug print once per second
+        
         m_debugPrintTimer += dt;
         if (m_debugPrintTimer >= 1.0f)
         {
@@ -221,7 +261,7 @@ void Application::run()
                      " Cull=" + std::string(m_cullingEnabled ? "ON" : "OFF"));
         }
         
-        // Render
+        
         glClearColor(0.1f, 0.1f, 0.15f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         
@@ -252,7 +292,7 @@ void Application::run()
         
         m_crosshair->draw(m_basicShader.get(), m_window->width(), m_window->height());
         
-        // Draw HUD last (Phase 12: always visible, screen-space overlay)
+        
         if (m_hud)
         {
             m_hud->draw();
@@ -303,59 +343,60 @@ void Application::enterState(AppState newState)
     {
         case AppState::Booking:
             if (m_screen) m_screen->stopAndResetToWhite();
+            if (m_door) m_door->close();
             break;
             
         case AppState::Entering:
         {
-            // Open door first, people will spawn after delay in updateEnteringState
+            
             if (m_door) m_door->open();
             LOG_INFO("Door opening... waiting for people to enter");
             break;
         }
         
         case AppState::Projection:
-            // Close door first, film will start after delay in updateProjectionState
+            
             if (m_door) m_door->close();
             LOG_INFO("Door closing... preparing projection");
             break;
             
         case AppState::Exiting:
-            // Open door and start exiting immediately
+            
             if (m_door) m_door->open();
             if (m_peopleManager) m_peopleManager->startExiting();
             LOG_INFO("Door opening... people exiting");
             break;
             
         case AppState::Reset:
-            // Immediate reset
+            
             break;
     }
 }
 
 void Application::updateBookingState()
 {
-    // Waiting for ENTER key (handled in handleEnterKey)
+    
 }
 
 void Application::updateEnteringState()
 {
-    // Wait 1.5 seconds for door to fully open before spawning people
+    
     const float DOOR_OPEN_DELAY = 1.5f;
     
     if (m_stateTimer < DOOR_OPEN_DELAY)
     {
-        // Still waiting for door to open
+        
         return;
     }
     
-    // Spawn people once (when timer just passed the delay)
+    
     static bool peopleSpawned = false;
     if (!peopleSpawned && m_stateTimer >= DOOR_OPEN_DELAY)
     {
         int occupied = countOccupiedSeats();
         if (occupied > 0 && m_peopleManager && m_seatGrid)
         {
-            glm::vec3 doorPos(-8.5f, 1.7f, -5.0f);
+            glm::vec3 doorPos(-8.5f, 1.7f, -5.0f);  
             m_peopleManager->spawnPeopleRandom(*m_seatGrid, doorPos, 1, occupied);
             LOG_INFO("Door fully open - spawned " + std::to_string(m_peopleManager->getPeopleCount()) + 
                      " people for " + std::to_string(occupied) + " occupied seats");
@@ -363,26 +404,26 @@ void Application::updateEnteringState()
         peopleSpawned = true;
     }
     
-    // Check if all people are seated
+    
     if (m_peopleManager && m_peopleManager->allSeated())
     {
-        peopleSpawned = false;  // Reset for next cycle
+        peopleSpawned = false;  
         enterState(AppState::Projection);
     }
 }
 
 void Application::updateProjectionState()
 {
-    // Wait 1.5 seconds for door to fully close before starting film
+    
     const float DOOR_CLOSE_DELAY = 1.5f;
     
     if (m_stateTimer < DOOR_CLOSE_DELAY)
     {
-        // Still waiting for door to close
+        
         return;
     }
     
-    // Start film once (when timer just passed the delay)
+    
     static bool filmStarted = false;
     if (!filmStarted && m_stateTimer >= DOOR_CLOSE_DELAY)
     {
@@ -391,17 +432,17 @@ void Application::updateProjectionState()
         filmStarted = true;
     }
     
-    // Check if film finished
+    
     if (m_screen && !m_screen->isPlaying() && filmStarted)
     {
-        filmStarted = false;  // Reset for next cycle
+        filmStarted = false;  
         enterState(AppState::Exiting);
     }
 }
 
 void Application::updateExitingState()
 {
-    // Check if all people have exited
+    
     if (m_peopleManager && m_peopleManager->allExited())
     {
         enterState(AppState::Reset);
@@ -410,12 +451,12 @@ void Application::updateExitingState()
 
 void Application::updateResetState()
 {
-    // Wait 1.5 seconds for door to close before returning to Booking
+    
     const float DOOR_CLOSE_DELAY = 1.5f;
     
     if (m_stateTimer < DOOR_CLOSE_DELAY)
     {
-        // Close door if not already closing
+        
         static bool doorClosing = false;
         if (!doorClosing)
         {
@@ -426,14 +467,14 @@ void Application::updateResetState()
         return;
     }
     
-    // Door fully closed, now reset everything
-    static bool doorClosing = false;
-    doorClosing = false;  // Reset for next cycle
     
-    // Clear people
+    static bool doorClosing = false;
+    doorClosing = false;  
+    
+    
     if (m_peopleManager) m_peopleManager->clear();
     
-    // Reset all seats to Free
+    
     if (m_seatGrid)
     {
         for (int row = 0; row < SeatGrid::ROWS; ++row)
@@ -446,7 +487,7 @@ void Application::updateResetState()
         }
     }
     
-    // Reset screen
+    
     if (m_screen) m_screen->stopAndResetToWhite();
     
     LOG_INFO("Reset complete - returning to Booking");
@@ -588,7 +629,7 @@ void Application::handleSeatPicking()
 
 void Application::handleRenderToggles()
 {
-    // V key toggles depth testing (Phase 11)
+    
     if (Input::isKeyPressed(GLFW_KEY_V))
     {
         m_depthTestEnabled = !m_depthTestEnabled;
@@ -604,7 +645,7 @@ void Application::handleRenderToggles()
         }
     }
     
-    // C key toggles back-face culling (Phase 11)
+    
     if (Input::isKeyPressed(GLFW_KEY_C))
     {
         m_cullingEnabled = !m_cullingEnabled;
@@ -654,6 +695,19 @@ void Application::shutdown()
         m_debugCube.reset();
     }
     
+    if (m_seatMesh)
+    {
+        m_seatMesh->cleanup();
+        m_seatMesh.reset();
+    }
+    
+    if (m_humanMesh)
+    {
+        m_humanMesh->cleanup();
+        m_humanMesh.reset();
+    }
+    
+    m_humanShader.reset();
     m_phongShader.reset();
     m_basicShader.reset();
     m_camera.reset();

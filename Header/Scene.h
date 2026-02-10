@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "Light.h"
 #include "AABB.h"
@@ -11,13 +11,12 @@ class Shader;
 class DebugCube;
 class Camera;
 
-// Simple renderable object (cube with transform and color)
 struct SceneObject
 {
     glm::vec3 position;
     glm::vec3 scale;
     glm::vec3 color;
-    bool isScreen;  // Special flag for screen (uses unlit shader)
+    bool isScreen;  
     
     SceneObject()
         : position(0.0f)
@@ -55,25 +54,25 @@ public:
     void draw(const glm::mat4& view, const glm::mat4& projection, 
               Shader* phongShader, Shader* basicShader, const glm::vec3& viewPos);
     
-    // Light accessors
+    
     Light& getRoomLight() { return m_roomLight; }
     Light& getScreenLight() { return m_screenLight; }
     
-    // Get collision bounds for all collidable objects (stairs, platforms)
+    
     std::vector<AABB> getCollidableBounds() const;
     
 private:
     void createHallGeometry();
     void createLights();
     
-    DebugCube* m_cubeMesh;  // Shared mesh (not owned by Scene)
+    DebugCube* m_cubeMesh;  
     std::vector<SceneObject> m_objects;
     
-    // Lights
+    
     Light m_roomLight;
     Light m_screenLight;
     
-    // Hall geometry indices (for reference/debugging)
+    
     int m_floorIndex;
     int m_ceilingIndex;
     int m_frontWallIndex;
@@ -83,7 +82,7 @@ private:
     int m_screenIndex;
     int m_doorIndex;
     
-    // Stadium seating geometry indices
-    int m_firstPlatformIndex;  // First stepped platform
-    int m_firstStairIndex;     // First stair
+    
+    int m_firstPlatformIndex;  
+    int m_firstStairIndex;     
 };
